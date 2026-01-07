@@ -31,12 +31,20 @@ export async function POST(req: Request) {
 
     // Parse agent configuration from request body
     const body = await req.json();
+    console.log('[connection-details] Request body recibido:', JSON.stringify(body));
     const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
+    console.log('[connection-details] agentName extraído:', agentName);
 
     // Generate participant token
     const participantName = 'user';
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
+    console.log(
+      '[connection-details] Creando token para room:',
+      roomName,
+      'con agentName:',
+      agentName
+    );
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },
@@ -81,11 +89,55 @@ function createParticipantToken(
   };
   at.addGrant(grant);
 
-  if (agentName) {
-    at.roomConfig = new RoomConfiguration({
-      agents: [{ agentName }],
-    });
-  }
+  // Metadata hardcodeado para el worker - siempre se configura
+  const agentMetadata = {
+    user_id: 'user_123',
+    user_name: 'Román',
+    timezone: 'Europe/Moscow',
+    location: { lat: -34.621310234862804, lng: -58.44261097815213 },
+    integrations: {
+      google_maps: { enabled: true },
+      // gmail: { enabled: true },
+      // wahatsapp: { enabled: true, token: "..." },
+      // waze: { enabled: false },
+    },
+  };
+
+  const metadataString = JSON.stringify(agentMetadata);
+  console.log(
+    '[createParticipantToken] Metadata hardcodeado:',
+    JSON.stringify(agentMetadata, null, 2)
+  );
+  console.log('[createParticipantToken] Metadata serializado (string):', metadataString);
+  console.log(
+    '[createParticipantToken] agentName recibido:',
+    agentName,
+    '(tipo:',
+    typeof agentName,
+    ', es string vacío:',
+    agentName === '',
+    ')'
+  );
+
+  // Configurar RoomConfiguration siempre con metadata
+  // Si agentName es undefined, usamos string vacío; si es string vacío, lo usamos tal cual
+  const finalAgentName = agentName !== undefined ? agentName : '';
+
+  at.roomConfig = new RoomConfiguration({
+    metadata: metadataString,
+    agents: finalAgentName
+      ? [
+          {
+            agentName: finalAgentName,
+          },
+        ]
+      : [],
+  });
+
+  console.log(
+    '[createParticipantToken] RoomConfiguration creado:',
+    JSON.stringify(at.roomConfig, null, 2)
+  );
 
   return at.toJwt();
 }
