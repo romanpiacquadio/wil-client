@@ -91,14 +91,19 @@ function createParticipantToken(
 
   // Metadata hardcodeado para el worker - siempre se configura
   const agentMetadata = {
-    user_id: 'user_123',
-    user_name: 'Román',
-    timezone: 'Europe/Moscow',
+    user_id: '3e7d972a-ea72-4c98-a2ee-5a0205c5d234',
+    conversation_id: '758fd165-8340-4038-a90a-01c3dc4d4cf8',
+    user_name: 'Fran',
+    voice: true,
+    voice_credits: true,
+    text_only: false,
+    timezone: 'America/Argentina/Buenos_Aires',
     location: { lat: -34.621310234862804, lng: -58.44261097815213 },
     integrations: {
-      google_maps: { enabled: true },
-      // gmail: { enabled: true },
-      // wahatsapp: { enabled: true, token: "..." },
+      google_maps: { enabled: false },
+      // google_workspace: { enabled: false, token: "ya29..." },
+      // google_contacts: { enabled: false, token: "ya29..." },
+      // whatsapp: { enabled: true, token: "..." },
       // waze: { enabled: false },
     },
   };
