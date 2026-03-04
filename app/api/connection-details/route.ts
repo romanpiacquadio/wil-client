@@ -20,6 +20,7 @@ type ConnectionDetailsRequest = {
   session_config?: {
     user_name?: string;
     google_token?: string;
+    system_prompt?: string;
   };
 };
 
@@ -51,6 +52,7 @@ export async function POST(req: Request) {
     const body: ConnectionDetailsRequest = await req.json();
     const userName = sanitizeUserName(body?.session_config?.user_name);
     const googleToken = sanitizeGoogleToken(body?.session_config?.google_token);
+    const prompt = sanitizePrompt(body?.session_config?.system_prompt);
     const conversationContext = await getConversationContext(userName);
 
     const participantName = 'user';
@@ -63,6 +65,7 @@ export async function POST(req: Request) {
       {
         userName,
         googleToken,
+        prompt,
         conversationContext,
       }
     );
@@ -95,6 +98,7 @@ function createParticipantToken(
   options: {
     userName: string;
     googleToken: string;
+    prompt: string;
     conversationContext: ConversationContext;
   }
 ): Promise<string> {
@@ -116,6 +120,7 @@ function createParticipantToken(
     user_id: options.conversationContext.userId,
     conversation_id: options.conversationContext.conversationId,
     user_name: options.userName,
+    system_prompt: options.prompt,
     voice: true,
     voice_credits: true,
     text_only: false,
@@ -172,6 +177,10 @@ function sanitizeUserName(value?: string): string {
 }
 
 function sanitizeGoogleToken(value?: string): string {
+  return value?.trim() ?? '';
+}
+
+function sanitizePrompt(value?: string): string {
   return value?.trim() ?? '';
 }
 

@@ -106,7 +106,7 @@ export function getSandboxTokenSource(appConfig: AppConfig) {
   return getConnectionDetailsTokenSource(
     process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT!,
     appConfig,
-    () => ({ userName: 'Fran', googleToken: '' }),
+    () => ({ userName: 'Fran', googleToken: '', prompt: '' }),
     {
       'X-Sandbox-Id': appConfig.sandboxId ?? '',
     }
@@ -126,7 +126,7 @@ export function getConnectionDetailsTokenSource(
           agents: [{ agent_name: appConfig.agentName }],
         }
       : undefined;
-    const { userName, googleToken } = getStartCallConfig();
+    const { userName, googleToken, prompt } = getStartCallConfig();
 
     try {
       const res = await fetch(url.toString(), {
@@ -140,6 +140,7 @@ export function getConnectionDetailsTokenSource(
           session_config: {
             user_name: userName,
             google_token: googleToken,
+            system_prompt: prompt,
           },
         }),
       });

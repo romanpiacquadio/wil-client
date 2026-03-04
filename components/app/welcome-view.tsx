@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { Button } from '@/components/livekit/button';
 import { DEFAULT_START_CALL_CONFIG, type StartCallConfig } from '@/lib/start-call-config';
 
@@ -32,6 +34,7 @@ export const WelcomeView = ({
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
   const [userName, setUserName] = useState(DEFAULT_START_CALL_CONFIG.userName);
   const [googleToken, setGoogleToken] = useState(DEFAULT_START_CALL_CONFIG.googleToken);
+  const [prompt, setPrompt] = useState(DEFAULT_START_CALL_CONFIG.prompt);
   const [isStarting, setIsStarting] = useState(false);
 
   const startCall = async () => {
@@ -44,6 +47,7 @@ export const WelcomeView = ({
       await onStartCall({
         userName: userName.trim() || DEFAULT_START_CALL_CONFIG.userName,
         googleToken: googleToken.trim(),
+        prompt: prompt.trim(),
       });
     } finally {
       setIsStarting(false);
@@ -52,40 +56,69 @@ export const WelcomeView = ({
 
   return (
     <div ref={ref}>
-      <section className="bg-background flex flex-col items-center justify-center text-center">
+      <section className="bg-background flex min-h-svh flex-col items-center px-3 py-10 text-center md:px-6 2xl:px-8">
         <WelcomeImage />
 
         <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
           Chat live with your voice AI agent
         </p>
-        <div className="mt-6 flex w-full max-w-md flex-col gap-3 text-left">
-          <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
-            User name
-            <input
-              type="text"
-              value={userName}
-              onChange={(event) => setUserName(event.target.value)}
-              placeholder="Fran"
-              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-            />
-          </label>
-          <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
-            Google token (workspace + contacts)
-            <input
-              type="text"
-              value={googleToken}
-              onChange={(event) => setGoogleToken(event.target.value)}
-              placeholder="ya29..."
-              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
-            />
-          </label>
+        <div className="mt-6 grid w-full max-w-[1800px] grid-cols-1 gap-5 text-left lg:grid-cols-2">
+          <div className="rounded-xl border border-gray-200 bg-white/60 p-4">
+            <div className="flex flex-col gap-3">
+              <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+                User name
+                <input
+                  type="text"
+                  value={userName}
+                  onChange={(event) => setUserName(event.target.value)}
+                  placeholder="Fran"
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                />
+              </label>
+              <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+                Google token (workspace + contacts)
+                <input
+                  type="text"
+                  value={googleToken}
+                  onChange={(event) => setGoogleToken(event.target.value)}
+                  placeholder="ya29..."
+                  className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+                />
+              </label>
+              <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+                Prompt (Markdown)
+                <textarea
+                  value={prompt}
+                  onChange={(event) => setPrompt(event.target.value)}
+                  placeholder="Instrucciones para esta llamada..."
+                  rows={22}
+                  className="mt-1 min-h-[36rem] w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900"
+                />
+              </label>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-gray-200 bg-white/60 p-4">
+            <p className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+              Prompt preview
+            </p>
+            <div className="mt-1 h-[36rem] overflow-y-auto rounded-md border border-gray-300 bg-white p-4 text-sm leading-6 text-gray-900">
+              {prompt.trim() ? (
+                <article className="space-y-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-100 [&_pre]:p-3">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{prompt}</ReactMarkdown>
+                </article>
+              ) : (
+                <p className="text-gray-500">El preview aparece cuando escribas el prompt.</p>
+              )}
+            </div>
+          </div>
         </div>
 
         <Button
           variant="primary"
           size="lg"
           onClick={startCall}
-          className="mt-6 w-64 font-mono"
+          className="mt-6 w-80 font-mono"
           disabled={isStarting}
         >
           {startButtonText}
