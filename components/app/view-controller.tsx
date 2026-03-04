@@ -5,6 +5,7 @@ import { useSessionContext } from '@livekit/components-react';
 import type { AppConfig } from '@/app-config';
 import { SessionView } from '@/components/app/session-view';
 import { WelcomeView } from '@/components/app/welcome-view';
+import type { StartCallConfig } from '@/lib/start-call-config';
 
 const MotionWelcomeView = motion.create(WelcomeView);
 const MotionSessionView = motion.create(SessionView);
@@ -29,9 +30,10 @@ const VIEW_MOTION_PROPS = {
 
 interface ViewControllerProps {
   appConfig: AppConfig;
+  onPrepareStartCall: (config: StartCallConfig) => void;
 }
 
-export function ViewController({ appConfig }: ViewControllerProps) {
+export function ViewController({ appConfig, onPrepareStartCall }: ViewControllerProps) {
   const { isConnected, start } = useSessionContext();
 
   return (
@@ -42,7 +44,10 @@ export function ViewController({ appConfig }: ViewControllerProps) {
           key="welcome"
           {...VIEW_MOTION_PROPS}
           startButtonText={appConfig.startButtonText}
-          onStartCall={start}
+          onStartCall={async (config) => {
+            onPrepareStartCall(config);
+            await start();
+          }}
         />
       )}
       {/* Session view */}

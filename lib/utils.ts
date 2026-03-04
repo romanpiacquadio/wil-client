@@ -4,6 +4,7 @@ import { TokenSource } from 'livekit-client';
 import { twMerge } from 'tailwind-merge';
 import { APP_CONFIG_DEFAULTS } from '@/app-config';
 import type { AppConfig } from '@/app-config';
+import type { StartCallConfig } from '@/lib/start-call-config';
 
 export const CONFIG_ENDPOINT = process.env.NEXT_PUBLIC_APP_CONFIG_ENDPOINT;
 export const SANDBOX_ID = process.env.SANDBOX_ID;
@@ -102,24 +103,44 @@ export function getStyles(appConfig: AppConfig) {
  * @returns A token source for a sandboxed LiveKit session
  */
 export function getSandboxTokenSource(appConfig: AppConfig) {
+  return getConnectionDetailsTokenSource(
+    process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT!,
+    appConfig,
+    () => ({ userName: 'Fran', googleToken: '' }),
+    {
+      'X-Sandbox-Id': appConfig.sandboxId ?? '',
+    }
+  );
+}
+
+export function getConnectionDetailsTokenSource(
+  endpoint: string,
+  appConfig: AppConfig,
+  getStartCallConfig: () => StartCallConfig,
+  extraHeaders: Record<string, string> = {}
+) {
   return TokenSource.custom(async () => {
-    const url = new URL(process.env.NEXT_PUBLIC_CONN_DETAILS_ENDPOINT!, window.location.origin);
-    const sandboxId = appConfig.sandboxId ?? '';
+    const url = new URL(endpoint, window.location.origin);
     const roomConfig = appConfig.agentName
       ? {
           agents: [{ agent_name: appConfig.agentName }],
         }
       : undefined;
+    const { userName, googleToken } = getStartCallConfig();
 
     try {
       const res = await fetch(url.toString(), {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Sandbox-Id': sandboxId,
+          ...extraHeaders,
         },
         body: JSON.stringify({
           room_config: roomConfig,
+          session_config: {
+            user_name: userName,
+            google_token: googleToken,
+          },
         }),
       });
       return await res.json();

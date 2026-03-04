@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { AccessToken, type AccessTokenOptions, type VideoGrant } from 'livekit-server-sdk';
 import { RoomConfiguration } from '@livekit/protocol';
+import { getDbPool } from '@/lib/server/db';
+import { DEFAULT_START_CALL_CONFIG } from '@/lib/start-call-config';
 
 type ConnectionDetails = {
   serverUrl: string;
@@ -9,12 +11,29 @@ type ConnectionDetails = {
   participantToken: string;
 };
 
-// NOTE: you are expected to define the following environment variables in `.env.local`:
+type ConnectionDetailsRequest = {
+  room_config?: {
+    agents?: Array<{
+      agent_name?: string;
+    }>;
+  };
+  session_config?: {
+    user_name?: string;
+    google_token?: string;
+  };
+};
+
+type ConversationContext = {
+  userId: string;
+  conversationId: string;
+};
+
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
+//const HARDCODED_AGENT_NAME = 'wil-local-agent';
+const HARDCODED_AGENT_NAME = '';
 
-// don't cache the results
 export const revalidate = 0;
 
 export async function POST(req: Request) {
@@ -29,57 +48,61 @@ export async function POST(req: Request) {
       throw new Error('LIVEKIT_API_SECRET is not defined');
     }
 
-    // Parse agent configuration from request body
-    const body = await req.json();
-    console.log('[connection-details] Request body recibido:', JSON.stringify(body));
-    const agentName: string = body?.room_config?.agents?.[0]?.agent_name;
-    console.log('[connection-details] agentName extraído:', agentName);
+    const body: ConnectionDetailsRequest = await req.json();
+    const userName = sanitizeUserName(body?.session_config?.user_name);
+    const googleToken = sanitizeGoogleToken(body?.session_config?.google_token);
+    const conversationContext = await getConversationContext(userName);
 
-    // Generate participant token
     const participantName = 'user';
     const participantIdentity = `voice_assistant_user_${Math.floor(Math.random() * 10_000)}`;
     const roomName = `voice_assistant_room_${Math.floor(Math.random() * 10_000)}`;
-    console.log(
-      '[connection-details] Creando token para room:',
-      roomName,
-      'con agentName:',
-      agentName
-    );
 
     const participantToken = await createParticipantToken(
       { identity: participantIdentity, name: participantName },
       roomName,
-      agentName
+      {
+        userName,
+        googleToken,
+        conversationContext,
+      }
     );
 
-    // Return connection details
     const data: ConnectionDetails = {
       serverUrl: LIVEKIT_URL,
       roomName,
-      participantToken: participantToken,
+      participantToken,
       participantName,
     };
-    const headers = new Headers({
-      'Cache-Control': 'no-store',
+
+    return NextResponse.json(data, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
     });
-    return NextResponse.json(data, { headers });
   } catch (error) {
     if (error instanceof Error) {
       console.error(error);
       return new NextResponse(error.message, { status: 500 });
     }
+
+    return new NextResponse('Unknown error', { status: 500 });
   }
 }
 
 function createParticipantToken(
   userInfo: AccessTokenOptions,
   roomName: string,
-  agentName?: string
+  options: {
+    userName: string;
+    googleToken: string;
+    conversationContext: ConversationContext;
+  }
 ): Promise<string> {
   const at = new AccessToken(API_KEY, API_SECRET, {
     ...userInfo,
     ttl: '15m',
   });
+
   const grant: VideoGrant = {
     room: roomName,
     roomJoin: true,
@@ -89,11 +112,10 @@ function createParticipantToken(
   };
   at.addGrant(grant);
 
-  // Metadata hardcodeado para el worker - siempre se configura
   const agentMetadata = {
-    user_id: '3e7d972a-ea72-4c98-a2ee-5a0205c5d234',
-    conversation_id: '758fd165-8340-4038-a90a-01c3dc4d4cf8',
-    user_name: 'Fran',
+    user_id: options.conversationContext.userId,
+    conversation_id: options.conversationContext.conversationId,
+    user_name: options.userName,
     voice: true,
     voice_credits: true,
     text_only: false,
@@ -103,7 +125,7 @@ function createParticipantToken(
       google_maps: { enabled: true },
       google_workspace: {
         enabled: true,
-        token: "",
+        token: options.googleToken,
         allowed_tools: [
           'list_calendars',
           'get_events',
@@ -120,7 +142,7 @@ function createParticipantToken(
       },
       google_contacts: {
         enabled: true,
-        token: '',
+        token: options.googleToken,
         allowed_tools: [
           'contacts_list',
           'contacts_search',
@@ -129,50 +151,91 @@ function createParticipantToken(
           'contact_update',
         ],
       },
-      // whatsapp: { enabled: true, token: "..." },
-      // waze: { enabled: false },
     },
   };
 
-  const metadataString = JSON.stringify(agentMetadata);
-  console.log(
-    '[createParticipantToken] Metadata hardcodeado:',
-    JSON.stringify(agentMetadata, null, 2)
-  );
-  console.log('[createParticipantToken] Metadata serializado (string):', metadataString);
-  console.log(
-    '[createParticipantToken] agentName recibido:',
-    agentName,
-    '(tipo:',
-    typeof agentName,
-    ', es string vacío:',
-    agentName === '',
-    ')'
-  );
-
-  // Configurar RoomConfiguration siempre con metadata
-  // Si agentName es undefined, usamos string vacío; si es string vacío, lo usamos tal cual
-  const finalAgentName = agentName !== undefined ? agentName : '';
-  const HARDCODED_AGENT_NAME = 'wil-local-agent';
-  // at.roomConfig = new RoomConfiguration({
-  //   metadata: metadataString,
-  //   agents: finalAgentName
-  //     ? [
-  //         {
-  //           agentName: HARDCODED_AGENT_NAME,
-  //         },
-  //       ]
-  //     : [],
-  // });
   at.roomConfig = new RoomConfiguration({
-    metadata: metadataString, // tu metadata hardcodeada actual
+    metadata: JSON.stringify(agentMetadata),
     agents: [{ agentName: HARDCODED_AGENT_NAME }],
   });
 
-  console.log(
-    '[createParticipantToken] RoomConfiguration creado:',
-    JSON.stringify(at.roomConfig, null, 2)
-  );
-
   return at.toJwt();
+}
+
+function sanitizeUserName(value?: string): string {
+  if (!value) {
+    return DEFAULT_START_CALL_CONFIG.userName;
+  }
+
+  const normalized = value.trim();
+  return normalized || DEFAULT_START_CALL_CONFIG.userName;
+}
+
+function sanitizeGoogleToken(value?: string): string {
+  return value?.trim() ?? '';
+}
+
+async function getConversationContext(userName: string): Promise<ConversationContext> {
+  const pool = getDbPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const userResult = await client.query<{ id: string }>(
+      `
+      SELECT id
+      FROM users
+      WHERE name = $1
+      ORDER BY updated_at DESC NULLS LAST, created_at DESC
+      LIMIT 1
+      `,
+      [userName]
+    );
+
+    let userId = userResult.rows[0]?.id;
+
+    if (!userId) {
+      const createdUserResult = await client.query<{ id: string }>(
+        `
+        INSERT INTO users (name, profile)
+        VALUES ($1, $2::jsonb)
+        RETURNING id
+        `,
+        [userName, JSON.stringify({})]
+      );
+      userId = createdUserResult.rows[0]?.id;
+    }
+
+    if (!userId) {
+      throw new Error('Could not resolve user ID');
+    }
+
+    const conversationResult = await client.query<{ id: string }>(
+      `
+      INSERT INTO conversations (user_id, last_updated, metadata)
+      VALUES ($1, NOW(), $2::jsonb)
+      RETURNING id
+      `,
+      [userId, JSON.stringify({ source: 'wil-client' })]
+    );
+
+    const conversationId = conversationResult.rows[0]?.id;
+
+    if (!conversationId) {
+      throw new Error('Could not create conversation');
+    }
+
+    await client.query('COMMIT');
+
+    return {
+      userId,
+      conversationId,
+    };
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
 }

@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { Button } from '@/components/livekit/button';
+import { DEFAULT_START_CALL_CONFIG, type StartCallConfig } from '@/lib/start-call-config';
 
 function WelcomeImage() {
   return (
@@ -20,7 +22,7 @@ function WelcomeImage() {
 
 interface WelcomeViewProps {
   startButtonText: string;
-  onStartCall: () => void;
+  onStartCall: (config: StartCallConfig) => Promise<void> | void;
 }
 
 export const WelcomeView = ({
@@ -28,6 +30,26 @@ export const WelcomeView = ({
   onStartCall,
   ref,
 }: React.ComponentProps<'div'> & WelcomeViewProps) => {
+  const [userName, setUserName] = useState(DEFAULT_START_CALL_CONFIG.userName);
+  const [googleToken, setGoogleToken] = useState(DEFAULT_START_CALL_CONFIG.googleToken);
+  const [isStarting, setIsStarting] = useState(false);
+
+  const startCall = async () => {
+    if (isStarting) {
+      return;
+    }
+
+    setIsStarting(true);
+    try {
+      await onStartCall({
+        userName: userName.trim() || DEFAULT_START_CALL_CONFIG.userName,
+        googleToken: googleToken.trim(),
+      });
+    } finally {
+      setIsStarting(false);
+    }
+  };
+
   return (
     <div ref={ref}>
       <section className="bg-background flex flex-col items-center justify-center text-center">
@@ -36,8 +58,36 @@ export const WelcomeView = ({
         <p className="text-foreground max-w-prose pt-1 leading-6 font-medium">
           Chat live with your voice AI agent
         </p>
+        <div className="mt-6 flex w-full max-w-md flex-col gap-3 text-left">
+          <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+            User name
+            <input
+              type="text"
+              value={userName}
+              onChange={(event) => setUserName(event.target.value)}
+              placeholder="Fran"
+              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+            />
+          </label>
+          <label className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
+            Google token (workspace + contacts)
+            <input
+              type="text"
+              value={googleToken}
+              onChange={(event) => setGoogleToken(event.target.value)}
+              placeholder="ya29..."
+              className="mt-1 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900"
+            />
+          </label>
+        </div>
 
-        <Button variant="primary" size="lg" onClick={onStartCall} className="mt-6 w-64 font-mono">
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={startCall}
+          className="mt-6 w-64 font-mono"
+          disabled={isStarting}
+        >
           {startButtonText}
         </Button>
       </section>
