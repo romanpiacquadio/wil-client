@@ -100,9 +100,35 @@ function createParticipantToken(
     timezone: 'America/Argentina/Buenos_Aires',
     location: { lat: -34.621310234862804, lng: -58.44261097815213 },
     integrations: {
-      google_maps: { enabled: false },
-      // google_workspace: { enabled: false, token: "ya29..." },
-      // google_contacts: { enabled: false, token: "ya29..." },
+      google_maps: { enabled: true },
+      google_workspace: {
+        enabled: true,
+        token: "",
+        allowed_tools: [
+          'list_calendars',
+          'get_events',
+          'create_event',
+          'modify_event',
+          'delete_event',
+          'search_gmail_messages',
+          'get_gmail_message_content',
+          'send_gmail_message',
+          'get_gmail_thread_content',
+          'draft_gmail_message',
+          'search_custom',
+        ],
+      },
+      google_contacts: {
+        enabled: true,
+        token: '',
+        allowed_tools: [
+          'contacts_list',
+          'contacts_search',
+          'contact_get',
+          'contact_create',
+          'contact_update',
+        ],
+      },
       // whatsapp: { enabled: true, token: "..." },
       // waze: { enabled: false },
     },
@@ -127,16 +153,20 @@ function createParticipantToken(
   // Configurar RoomConfiguration siempre con metadata
   // Si agentName es undefined, usamos string vacío; si es string vacío, lo usamos tal cual
   const finalAgentName = agentName !== undefined ? agentName : '';
-
+  const HARDCODED_AGENT_NAME = 'wil-local-agent';
+  // at.roomConfig = new RoomConfiguration({
+  //   metadata: metadataString,
+  //   agents: finalAgentName
+  //     ? [
+  //         {
+  //           agentName: HARDCODED_AGENT_NAME,
+  //         },
+  //       ]
+  //     : [],
+  // });
   at.roomConfig = new RoomConfiguration({
-    metadata: metadataString,
-    agents: finalAgentName
-      ? [
-          {
-            agentName: finalAgentName,
-          },
-        ]
-      : [],
+    metadata: metadataString, // tu metadata hardcodeada actual
+    agents: [{ agentName: HARDCODED_AGENT_NAME }],
   });
 
   console.log(
