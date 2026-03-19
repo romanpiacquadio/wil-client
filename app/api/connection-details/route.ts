@@ -4,6 +4,7 @@ import { RoomConfiguration } from '@livekit/protocol';
 import { getDbPool } from '@/lib/server/db';
 import { DEFAULT_START_CALL_CONFIG } from '@/lib/start-call-config';
 
+
 type ConnectionDetails = {
   serverUrl: string;
   roomName: string;
@@ -127,35 +128,17 @@ function createParticipantToken(
     timezone: 'America/Argentina/Buenos_Aires',
     location: { lat: -34.621310234862804, lng: -58.44261097815213 },
     integrations: {
-      google_maps: { enabled: true },
-      google_workspace: {
+      google_gmail: {
         enabled: true,
         token: options.googleToken,
-        allowed_tools: [
-          'list_calendars',
-          'get_events',
-          'create_event',
-          'modify_event',
-          'delete_event',
-          'search_gmail_messages',
-          'get_gmail_message_content',
-          'send_gmail_message',
-          'get_gmail_thread_content',
-          'draft_gmail_message',
-          'search_custom',
-        ],
+        permissions: ['gmail-send-emails'],
       },
-      google_contacts: {
+      google_calendar: {
         enabled: true,
         token: options.googleToken,
-        allowed_tools: [
-          'contacts_list',
-          'contacts_search',
-          'contact_get',
-          'contact_create',
-          'contact_update',
-        ],
+        permissions: ['gcal-manage-events'],
       },
+      google_maps: { enabled: false },
     },
   };
 
