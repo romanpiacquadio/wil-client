@@ -9,9 +9,5 @@ export default async function Layout({ children }: LayoutProps) {
   const hdrs = await headers();
   const { companyName, logo, logoDark } = await getAppConfig(hdrs);
 
-  return (
-    <>
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

@@ -4,7 +4,6 @@ import { RoomConfiguration } from '@livekit/protocol';
 import { getDbPool } from '@/lib/server/db';
 import { DEFAULT_START_CALL_CONFIG } from '@/lib/start-call-config';
 
-
 type ConnectionDetails = {
   serverUrl: string;
   roomName: string;

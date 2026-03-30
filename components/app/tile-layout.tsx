@@ -123,7 +123,7 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                     delay: animationDelay,
                   }}
                   className={cn(
-                    'relative bg-background aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
+                    'bg-background relative aspect-square h-[90px] rounded-md border border-transparent transition-[border,drop-shadow]',
                     chatOpen && 'border-input/50 drop-shadow-lg/10 delay-200'
                   )}
                 >
@@ -142,10 +142,12 @@ export function TileLayout({ chatOpen }: TileLayoutProps) {
                       ])}
                     />
                   </BarVisualizer>
-                  {(agentState === 'listening' || agentState === 'thinking' || agentState === 'speaking') && (
+                  {(agentState === 'listening' ||
+                    agentState === 'thinking' ||
+                    agentState === 'speaking') && (
                     <span
                       className={cn(
-                        'absolute bottom-1.5 left-0 right-0 text-center text-[10px] font-medium tracking-wide transition-colors duration-300',
+                        'absolute right-0 bottom-1.5 left-0 text-center text-[10px] font-medium tracking-wide transition-colors duration-300',
                         agentState === 'listening' && 'text-blue-400',
                         agentState === 'thinking' && 'text-amber-400',
                         agentState === 'speaking' && 'text-violet-400'
