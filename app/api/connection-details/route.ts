@@ -33,7 +33,7 @@ type ConversationContext = {
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
-const HARDCODED_AGENT_NAME = 'wil-local-agent';
+const HARDCODED_AGENT_NAME = 'wil-local-eri-agent';
 //const HARDCODED_AGENT_NAME = '';
 
 export const revalidate = 0;
@@ -131,14 +131,17 @@ function createParticipantToken(
       google_gmail: {
         enabled: true,
         token: options.googleToken,
-        permissions: ['gmail-send-emails'],
+        permissions: ['gmail-send-emails', 'gmail-read-search-emails'],
       },
       google_calendar: {
         enabled: true,
         token: options.googleToken,
         permissions: ['gcal-manage-events'],
       },
-      google_maps: { enabled: false },
+      google_maps: {
+        enabled: false,
+        // permissions: ['google-maps-search-places'],
+      },
     },
   };
 
@@ -178,7 +181,7 @@ async function getConversationContext(userName: string): Promise<ConversationCon
       `
       SELECT id
       FROM users
-      WHERE name = $1
+      WHERE display_name = $1
       ORDER BY updated_at DESC NULLS LAST, created_at DESC
       LIMIT 1
       `,

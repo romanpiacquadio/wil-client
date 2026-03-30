@@ -91,8 +91,8 @@ export const WelcomeView = ({
                   value={prompt}
                   onChange={(event) => setPrompt(event.target.value)}
                   placeholder="Instrucciones para esta llamada..."
-                  rows={22}
-                  className="mt-1 min-h-[36rem] w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900"
+                  rows={5}
+                  className="mt-1 w-full resize-y rounded-md border border-gray-300 bg-white px-3 py-2 text-sm leading-6 text-gray-900"
                 />
               </label>
             </div>
@@ -102,7 +102,7 @@ export const WelcomeView = ({
             <p className="text-xs font-semibold tracking-wide text-gray-600 uppercase">
               Prompt preview
             </p>
-            <div className="mt-1 h-[36rem] overflow-y-auto rounded-md border border-gray-300 bg-white p-4 text-sm leading-6 text-gray-900">
+            <div className="mt-1 h-full overflow-y-auto rounded-md bg-white p-4 text-sm leading-6 text-gray-900">
               {prompt.trim() ? (
                 <article className="space-y-3 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-300 [&_blockquote]:pl-3 [&_code]:rounded [&_code]:bg-gray-100 [&_code]:px-1 [&_h1]:text-2xl [&_h1]:font-bold [&_h2]:text-xl [&_h2]:font-semibold [&_h3]:text-lg [&_h3]:font-semibold [&_li]:ml-5 [&_li]:list-disc [&_ol_li]:list-decimal [&_pre]:overflow-x-auto [&_pre]:rounded [&_pre]:bg-gray-100 [&_pre]:p-3">
                   <ReactMarkdown remarkPlugins={[remarkGfm]}>{prompt}</ReactMarkdown>
@@ -124,21 +124,6 @@ export const WelcomeView = ({
           {startButtonText}
         </Button>
       </section>
-
-      <div className="fixed bottom-5 left-0 flex w-full items-center justify-center">
-        <p className="text-muted-foreground max-w-prose pt-1 text-xs leading-5 font-normal text-pretty md:text-sm">
-          Need help getting set up? Check out the{' '}
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            href="https://docs.livekit.io/agents/start/voice-ai/"
-            className="underline"
-          >
-            Voice AI quickstart
-          </a>
-          .
-        </p>
-      </div>
     </div>
   );
 };
