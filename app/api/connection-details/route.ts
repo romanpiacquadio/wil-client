@@ -32,7 +32,7 @@ type ConversationContext = {
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
-const HARDCODED_AGENT_NAME = 'wil-local-agent';
+const HARDCODED_AGENT_NAME = 'wil-local-eri-agent';
 //const HARDCODED_AGENT_NAME = '';
 
 export const revalidate = 0;
@@ -127,17 +127,17 @@ function createParticipantToken(
     timezone: 'America/Argentina/Buenos_Aires',
     location: { lat: -34.621310234862804, lng: -58.44261097815213 },
     integrations: {
-      google_gmail: {
+      'google-gmail': {
         enabled: true,
         token: options.googleToken,
         permissions: ['gmail-send-emails', 'gmail-read-search-emails'],
       },
-      google_calendar: {
+      'google-calendar': {
         enabled: true,
         token: options.googleToken,
         permissions: ['gcal-manage-events'],
       },
-      google_maps: {
+      'google-maps': {
         enabled: true,
         permissions: ['google-maps-search-places'],
       },
