@@ -32,7 +32,7 @@ type ConversationContext = {
 const API_KEY = process.env.LIVEKIT_API_KEY;
 const API_SECRET = process.env.LIVEKIT_API_SECRET;
 const LIVEKIT_URL = process.env.LIVEKIT_URL;
-const HARDCODED_AGENT_NAME = 'wil-prod-agent';
+const HARDCODED_AGENT_NAME = 'wil-local-agent';
 //const HARDCODED_AGENT_NAME = '';
 
 export const revalidate = 0;
