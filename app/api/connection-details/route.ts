@@ -141,7 +141,7 @@ function createParticipantToken(
         enabled: false,
         permissions: ['google-maps-search-places'],
       },
-      'whatsapp': {
+      whatsapp: {
         enabled: true,
         permissions: ['send-message'],
       },
