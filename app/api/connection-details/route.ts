@@ -138,8 +138,12 @@ function createParticipantToken(
         permissions: ['gcal-manage-events'],
       },
       'google-maps': {
-        enabled: true,
+        enabled: false,
         permissions: ['google-maps-search-places'],
+      },
+      'whatsapp': {
+        enabled: true,
+        permissions: ['send-message'],
       },
     },
   };
