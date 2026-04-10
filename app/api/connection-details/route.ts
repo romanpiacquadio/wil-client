@@ -128,7 +128,7 @@ function createParticipantToken(
     location: { lat: -34.621310234862804, lng: -58.44261097815213 },
     integrations: {
       'google-gmail': {
-        enabled: false,
+        enabled: true,
         token: options.googleToken,
         permissions: [],
       },
