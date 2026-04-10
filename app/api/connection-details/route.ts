@@ -135,7 +135,7 @@ function createParticipantToken(
       'google-calendar': {
         enabled: true,
         token: options.googleToken,
-        permissions: ['gcal-manage-events'],
+        permissions: [],
       },
       'google-maps': {
         enabled: false,
