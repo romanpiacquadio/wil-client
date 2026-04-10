@@ -130,7 +130,7 @@ function createParticipantToken(
       'google-gmail': {
         enabled: false,
         token: options.googleToken,
-        permissions: ['gmail-send-emails', 'gmail-read-search-emails'],
+        permissions: [],
       },
       'google-calendar': {
         enabled: true,
